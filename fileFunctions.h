@@ -19,6 +19,38 @@ int isGoodSymbol (const char symbol);
 
 void fillArrayOfPtrOnStrings(char** arrayOfptrOnStrings, char* str, const size_t fileSize);
 
+int symbolAmount(char* str, const size_t fileSize, const char symbol) 
+{
+    assert(str != nullptr);
+
+    int nSymbols = 0;
+
+    for(size_t i = 0; i < fileSize; ++i) 
+    {
+        if(*str++ == symbol) 
+            ++nSymbols;
+    }
+
+    return nSymbols;
+}
+
+void fillArrayOfPtrOnStrings(char** arrayOfptrOnStrings, char* str, const size_t fileSize) {
+    arrayOfptrOnStrings[0] = str;
+
+    int currentLine = 1;
+
+    for(size_t j = 0; j < fileSize; ++j) {
+        if (str[j] == '\n') {
+            str[j] = '\0';
+
+            if (j + 1 != fileSize) {
+                arrayOfptrOnStrings[currentLine] = str + j + 1;
+                ++currentLine;
+            }
+        }
+    }
+}
+
 void scanInputName (char* str) {
     printf("Please, enter input file name: \n");
     scanf("%s", str);

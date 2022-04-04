@@ -4,7 +4,7 @@
 void treeBegin      (FILE* graphfile);
 void treeEnd        (FILE* graphfile);
 void treeInf        (FILE* graphfile, const Tree* tree);
-void addNode        (FILE* graphfile, const Node* node);
+void addNodeGr      (FILE* graphfile, const Node* node);
 void treeRel        (FILE* graphfile, const Node* currNode);
 void addAllNodes    (FILE* graphfile, const Node* currNode);
 
@@ -25,13 +25,13 @@ void treeInf (FILE* graphfile, const Tree* tree)
                         tree->head, tree->size);
 }
 
-void addNode (FILE* graphfile, const Node* node)
+void addNodeGr (FILE* graphfile, const Node* node)
 {
     assert (graphfile != nullptr);
     assert (node != nullptr);
 
-    fprintf(graphfile, "   Node%p  [shape = record, label = \"<a%p> address\\n %p | value %2d | <f%p> left | <ff%p> right\"];\n", 
-                           node, node, node, node->data, node, node);
+    fprintf(graphfile, "   Node%p  [shape = record, label = \"<a%p> address\\n %p | %s | <f%p> left | <ff%p> right\"];\n", 
+                           node, node, node, node->str, node, node);
 }
 
 void treeRel (FILE* graphfile, const Node* currNode)
@@ -61,7 +61,7 @@ void addAllNodes (FILE* graphfile, const Node* currNode)
     assert (graphfile != nullptr);
     assert (currNode != nullptr);
 
-    addNode (graphfile, currNode);
+    addNodeGr (graphfile, currNode);
 
     if (currNode->left)
         addAllNodes (graphfile, currNode->left);
@@ -82,7 +82,7 @@ void treeGraph (Tree* tree)
 
     addAllNodes (graphfile, tree->head);
 
-    system ("dot -Tpng treeGr.txt > treeGt.png");
+    system ("dot -Tpng treeGr.txt > treeGr.png");
 
     treeRel (graphfile, tree->head);
     treeEnd  (graphfile);
