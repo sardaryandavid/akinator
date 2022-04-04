@@ -266,7 +266,8 @@ void addNewSubj (Node* node) // узел, на котором не было от
     printf ("Please, enter the thing you wished: It is:\n");
     char* subj = (char*) calloc (MAXANS, sizeof (*subj));
 
-    scanf ("%s", subj);
+    //scanf ("%s", subj);
+    fgets (subj, MAXANS, stdin);
 
     Node* newNodeLeft = nodeCstr(subj);
 
@@ -274,6 +275,7 @@ void addNewSubj (Node* node) // узел, на котором не было от
     char* diff = (char*) calloc (MAXANS, sizeof (*diff));
 
     scanf ("%s", diff);
+    //fgets (subj, MAXANS, stdin);
 
     sprintf (diff + strlen(diff), "?");
     Node* newNodeRight = nodeCstr(node->str);
@@ -484,70 +486,33 @@ void addNodeFromFile (Node* PrevNode, Node* currNode, int* currLine, char** arra
 
         if (currNode->left == nullptr)
         {
-            printf ("First checker: <<%s>, <%p>, <%p>, Nexr str: <%s>\n", 
-                    currNode->str, currNode->left, currNode->right, *(arrayOfptrOnStrings + *currLine + 1));
-
             Node* newNode = readNode (textfile, arrayOfptrOnStrings, currLine);
             currNode->left = newNode;
 
-            printf ("First checker: <<%s>, <%p>, <%p>, Nexr str: <%s>\n", 
-                    currNode->str, currNode->left, currNode->right, *(arrayOfptrOnStrings + *currLine + 1));
+           
             addNodeFromFile (newNode, currNode->left, currLine, arrayOfptrOnStrings, textfile);
         }
 
         if (currNode->left != nullptr && currNode->right == nullptr)
         {
-            printf ("Second checker: <<%s>, <%p>, <%p>, Nexr str: <%s>\n",
-                    currNode->str, currNode->left, currNode->right, *(arrayOfptrOnStrings + *currLine + 1));
-            Node* newNode = readNode (textfile, arrayOfptrOnStrings, currLine);
-            currNode->right = newNode;
-            printf ("Second checker: <<%s>, <%p>, <%p>, Nexr str: <%s>, curr str: <%s>\n",
-                    currNode->str, currNode->left, currNode->right, *(arrayOfptrOnStrings + *currLine + 1), *(arrayOfptrOnStrings + *currLine));
-            addNodeFromFile (newNode, currNode->right, currLine, arrayOfptrOnStrings, textfile);
+            if (strcmp ("{", *(arrayOfptrOnStrings + *currLine)) == 0)
+            {
+                Node* newNode = readNode (textfile, arrayOfptrOnStrings, currLine);
+                currNode->right = newNode;
+                addNodeFromFile (newNode, currNode->right, currLine, arrayOfptrOnStrings, textfile);
+            }
+        
+            addNodeFromFile (currNode, currNode->right, currLine, arrayOfptrOnStrings, textfile);
         }
     }
 
     else if (*(arrayOfptrOnStrings + *currLine + 1) != nullptr &&
              strcmp ("}", *(arrayOfptrOnStrings + *currLine)) == 0)
     {
-        printf ("\n\n Dangermoment*: Curr str: <%s>, Nexr str: <%s>\n", 
-                     *(arrayOfptrOnStrings + *currLine), *(arrayOfptrOnStrings + *currLine + 1));
         ++*currLine;
 
-        if (*(arrayOfptrOnStrings + *currLine + 1) != nullptr)
-        {
-             printf ("\n\n Dangermoment*: Curr str: <%s>, Nexr str: <%s>\n", 
-                     *(arrayOfptrOnStrings + *currLine), *(arrayOfptrOnStrings + *currLine + 1));
-        }
-
-        if (*(arrayOfptrOnStrings + *currLine + 1) != nullptr &&
-            strcmp ("{", *(arrayOfptrOnStrings + *currLine + 1)) == 0)
-        {
-            printf("\n\nI was here\n\n");
-            *currLine += 1;
-
-            return;
-        }
-
-        else if (*(arrayOfptrOnStrings + *currLine + 1) != nullptr &&
-                strcmp ("}", *(arrayOfptrOnStrings + *currLine + 1)) == 0)
-        {   
-            ++*currLine;
-
-            printf("\n\nI was here\n\n");
-
-            if (*(arrayOfptrOnStrings + *currLine + 1) != nullptr)
-            {
-                printf("\n\nI was here TEEEST\n\n");
-                printf ("Danger moment: <<%s>, Nexr str: <%s>>\n", 
-                    currNode->str,  *(arrayOfptrOnStrings + *currLine + 1));
-                printf("\n\nI was here\n\n");
-            }
-
-            return;
-        }
+        return;
     }
-
 }
 
 void launchReadFromFile ()
