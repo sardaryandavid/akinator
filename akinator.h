@@ -30,7 +30,7 @@ struct Tree
 
 //**********************************
 
-void treeGraph      (Tree* tree);
+void treeGraph (Tree* tree);
 
 //**********************************
 
@@ -113,7 +113,7 @@ void prePrint (const Node* node);
 
 //**********************************
 
-void prePrintToFile (FILE* file, const Node* node);
+void prePrintToFile (FILE* file, const Node* node, int n);
 
 //**********************************
 
@@ -189,24 +189,33 @@ void prePrint (const Node* node)
 
 //**********************************
 
-void prePrintToFile (FILE* file, const Node* node)
+void prePrintToFile (FILE* file, const Node* node, int n)
 {
     assert (node != nullptr);
     
+    for (int i = 0; i < n; ++i)
+        fprintf (file, "\t");
+    
     fprintf (file, "%s", "{\n");
+
+    for (int i = 0; i <= n; ++i)
+        fprintf (file, "\t");
+
     fprintf (file, "%s\n", node->str);
 
     if (node->left)
     {
-        prePrintToFile (file, node->left);
+        prePrintToFile (file, node->left, n + 1);
     }
 
     if (node->right)
     {
-        prePrintToFile (file, node->right);
-         
+        prePrintToFile (file, node->right, n + 1);
     }
    
+   for (int i = 0; i < n; ++i)
+        fprintf (file, "\t");
+
     fprintf (file, "%s", "}\n");
 }
 
@@ -266,8 +275,9 @@ void addNewSubj (Node* node) // узел, на котором не было от
     printf ("Please, enter the thing you wished: It is:\n");
     char* subj = (char*) calloc (MAXANS, sizeof (*subj));
 
-    //scanf ("%s", subj);
-    fgets (subj, MAXANS, stdin);
+    scanf ("%s", subj);
+    //scanf("%[^\n]", subj);
+    //fgets (subj, MAXANS, stdin);
 
     Node* newNodeLeft = nodeCstr(subj);
 
@@ -336,7 +346,7 @@ void launch(Node* node, Tree* tree)
 
             FILE* textFile = fopen ("tree.txt", "w");
 
-            prePrintToFile (textFile, tree->head);
+            prePrintToFile (textFile, tree->head, 0);
 
             treeDstr (tree);
             queueDstr (&Queue);
@@ -382,7 +392,7 @@ void checkPrintToFile (Tree* tree)
     scanInputName(fileName);
     FILE* text = fopen(fileName, "w");
 
-    prePrintToFile (text, tree->head);
+    prePrintToFile (text, tree->head, 0);
 
     free (fileName);
 
@@ -422,15 +432,21 @@ void addNodeFromFile (Node* PrevNode, Node* currNode, int* currLine, char** arra
 
 //**********************************
 
+int skipSpaces (char * str);
+
 Node* readNode (FILE* treeFile, char** arrayOfPtrOnStr, int* currLine)
 {
     assert (treeFile);
     assert (arrayOfPtrOnStr);
     assert (currLine);
 
+    *(arrayOfPtrOnStr + *currLine) += skipSpaces (*(arrayOfPtrOnStr + *currLine));
+
     if (strcmp (*(arrayOfPtrOnStr + *currLine), "{") == 0)
     {
         ++*currLine;
+        *(arrayOfPtrOnStr + *currLine) += skipSpaces (*(arrayOfPtrOnStr + *currLine));
+       
         char* nodeStr = *(arrayOfPtrOnStr + *currLine);
         ++*currLine; 
 
@@ -479,7 +495,8 @@ void addNodeFromFile (Node* PrevNode, Node* currNode, int* currLine, char** arra
     assert (currLine);
     assert (arrayOfptrOnStrings);
     assert (textfile);
-
+    
+    *(arrayOfptrOnStrings + *currLine) += skipSpaces (*(arrayOfptrOnStrings + *currLine));
     if (strcmp ("{", *(arrayOfptrOnStrings + *currLine)) == 0)
     {
         Node* prevNode = currNode;
@@ -489,12 +506,13 @@ void addNodeFromFile (Node* PrevNode, Node* currNode, int* currLine, char** arra
             Node* newNode = readNode (textfile, arrayOfptrOnStrings, currLine);
             currNode->left = newNode;
 
-           
             addNodeFromFile (newNode, currNode->left, currLine, arrayOfptrOnStrings, textfile);
         }
 
         if (currNode->left != nullptr && currNode->right == nullptr)
         {
+            *(arrayOfptrOnStrings + *currLine) += skipSpaces (*(arrayOfptrOnStrings + *currLine));
+
             if (strcmp ("{", *(arrayOfptrOnStrings + *currLine)) == 0)
             {
                 Node* newNode = readNode (textfile, arrayOfptrOnStrings, currLine);
@@ -521,4 +539,19 @@ void launchReadFromFile ()
 
     Tree* tree = buildTree (textTree);
     treeGraph (tree);
+}
+
+int skipSpaces (char * str)
+{
+    assert (str != nullptr);
+
+    int len = strlen (str);
+    int i = 0;
+
+    for (; i < len && ( *(str + i) == '\t' ||*(str + i) == ' '); ++i)
+    {
+        ;// emptybody
+    }
+
+    return i;
 }
