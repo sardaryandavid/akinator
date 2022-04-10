@@ -16,7 +16,7 @@ struct queue
     //[begin][...][tail][...][head]
     int tail;
     int head;
-    int* data; 
+    int* data;
 
     int size;
 };
@@ -27,7 +27,7 @@ void queueCstr (queue* Queue)
 {
     assert (Queue != nullptr);
 
-    Queue->data = (int*) calloc(QSIZE, sizeof(int));
+    Queue->data = (int*) calloc(QSIZE, sizeof(*Queue->data));
 
     Queue->tail  = -1;
     Queue->head  = -1;
@@ -40,7 +40,7 @@ void queueCstr (queue* Queue)
 void queueDstr (queue* Queue)
 {
     assert (Queue != nullptr);
-
+    
     free(Queue->data);
 }  
 

@@ -2,6 +2,7 @@
 
 #include "akinator.h"
 #include "graphvizTree.h"
+#include <stdlib.h>
 
 int startTheGame ()
 {
@@ -24,18 +25,23 @@ int startTheGame ()
 
 int main()
 {
-    Tree* tree = begin();
+    //Tree* tree = begin();
 
     int willPlay = startTheGame ();
-
+ 
+    //  добавить сравнения 
     if (willPlay == 1)
     {
-        launchReadFromFile ();   
-        //launch(tree->head, tree);
+        Tree* tree =  launchReadFromFile ();
+        
+        launch(tree->head, tree);
     }
     
     else if (willPlay == 0)
+    {
         printf ("The program is ended.\n");
+        //treeDstr (tree);
+    }
 
     else 
         printf ("Unknown Error");

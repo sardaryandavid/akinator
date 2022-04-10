@@ -297,10 +297,10 @@ void addNewSubj (Node* node) // узел, на котором не было от
 
 //**********************************
 
-void launch(Node* node, Tree* tree)
+Node* findCurrNode (Node* node, queue* Queue)
 {
-    struct queue Queue;
-    queueCstr (&Queue);
+    assert (node != nullptr);
+    assert (Queue != nullptr);
 
     while (node->left != nullptr && node->right != nullptr)
     {
@@ -312,21 +312,31 @@ void launch(Node* node, Tree* tree)
         if (isYes (ans))
         {
             node = node->left;
-            qPush (&Queue, YES);
+            qPush (Queue, YES);
         }
 
         else if (isNo (ans))
         {
             node = node->right;
-            qPush (&Queue, NO);
+            qPush (Queue, NO);
         }
 
         else 
         {
             printf ("Please, enter yes or no:\n");
-            launch (tree->head, tree);   
+            return findCurrNode (node, Queue);
         }
     }   
+
+    return node;
+}
+
+int isFinish (Node* node, Tree* tree, queue* Queue)
+{
+    assert (node != nullptr);
+    assert (tree != nullptr);
+
+    node = findCurrNode (tree->head, Queue);
 
     if (node->left == nullptr && node->right == nullptr)
     {
@@ -340,7 +350,7 @@ void launch(Node* node, Tree* tree)
         {
             printf ("I won the game! The game is ended!\n");
             printf ("The full information:\n");
-            fullInformation (tree, tree->head, &Queue);
+            fullInformation (tree, tree->head, Queue);
 
             treeGraph (tree);
 
@@ -348,26 +358,59 @@ void launch(Node* node, Tree* tree)
 
             prePrintToFile (textFile, tree->head, 0);
 
-            treeDstr (tree);
-            queueDstr (&Queue);
+            queueDstr (Queue);
+            fclose (textFile);
 
-            exit(1);
+            return 1;
         }
 
         else if (isNo (ans))
         {
             addNewSubj (node);
-            launch (tree->head, tree);
+
+            queueDstr (Queue);
+            
+            struct queue newQueue;
+            queueCstr (&newQueue);
+
+            return isFinish (node, tree, &newQueue);
         }
 
         else
         {
             printf ("Please, enter yes or no.\n");
-            launch (tree->head, tree);
+
+            queueDstr (Queue);
+            
+            struct queue newQueue;
+            queueCstr (&newQueue);
+
+            return isFinish (node, tree, &newQueue);
         }
-        
     }
 
+    return 0;
+}
+
+void launch(Node* node, Tree* tree)
+{
+    assert (node != nullptr);
+    assert (tree != nullptr);
+
+    struct queue Queue;
+    queueCstr (&Queue);
+
+    if (isFinish (node, tree, &Queue) == 1)
+    {
+        treeDstr (tree);
+        //queueDstr (&Queue);
+    }
+
+    else 
+    {
+        printf ("Error. Can`t finish the game\n");
+        exit (1);
+    }
 }
 
 //**********************************
@@ -447,7 +490,7 @@ Node* readNode (FILE* treeFile, char** arrayOfPtrOnStr, int* currLine)
         ++*currLine;
         *(arrayOfPtrOnStr + *currLine) += skipSpaces (*(arrayOfPtrOnStr + *currLine));
        
-        char* nodeStr = *(arrayOfPtrOnStr + *currLine);
+        char* nodeStr = strdup(*(arrayOfPtrOnStr + *currLine));
         ++*currLine; 
 
         Node * newNode = nodeCstr (nodeStr);
@@ -479,28 +522,40 @@ Tree* buildTree (FILE* treeFile)
     Node* headTree = readNode (treeFile, arrayOfptrOnStrings, &currLine);
     Tree* newTree = treeCstr (headTree);
     
-    Node * currNode = newTree->head;
+    Node * currNode = newTree->head;    
 
     addNodeFromFile (newTree->head, currNode, &currLine, arrayOfptrOnStrings, treeFile);
+
+    free (arrayOfptrOnStrings);
+    free (str);
 
     return newTree;
 }
 
 //**********************************
 
-void addNodeFromFile (Node* PrevNode, Node* currNode, int* currLine, char** arrayOfptrOnStrings, FILE* textfile)
+void printNodeInf (Node* node)
 {
-    assert (PrevNode != nullptr);
+    assert (node != nullptr);
+
+    printf ("node str: <%s>\n", node->str);
+}
+
+void addNodeFromFile (Node* prevNode, Node* currNode, int* currLine, char** arrayOfptrOnStrings, FILE* textfile)
+{
+    assert (prevNode != nullptr);
     assert (currNode);
     assert (currLine);
     assert (arrayOfptrOnStrings);
     assert (textfile);
     
+    if (!*(arrayOfptrOnStrings + *currLine))
+        return; 
+    
     *(arrayOfptrOnStrings + *currLine) += skipSpaces (*(arrayOfptrOnStrings + *currLine));
+
     if (strcmp ("{", *(arrayOfptrOnStrings + *currLine)) == 0)
     {
-        Node* prevNode = currNode;
-
         if (currNode->left == nullptr)
         {
             Node* newNode = readNode (textfile, arrayOfptrOnStrings, currLine);
@@ -512,15 +567,24 @@ void addNodeFromFile (Node* PrevNode, Node* currNode, int* currLine, char** arra
         if (currNode->left != nullptr && currNode->right == nullptr)
         {
             *(arrayOfptrOnStrings + *currLine) += skipSpaces (*(arrayOfptrOnStrings + *currLine));
-
+            
             if (strcmp ("{", *(arrayOfptrOnStrings + *currLine)) == 0)
             {
                 Node* newNode = readNode (textfile, arrayOfptrOnStrings, currLine);
                 currNode->right = newNode;
+
                 addNodeFromFile (newNode, currNode->right, currLine, arrayOfptrOnStrings, textfile);
             }
-        
-            addNodeFromFile (currNode, currNode->right, currLine, arrayOfptrOnStrings, textfile);
+
+            if (strcmp ("}", *(arrayOfptrOnStrings + *currLine)) == 0)
+            {
+                ++*currLine;
+
+                Node* newNode = readNode (textfile, arrayOfptrOnStrings, currLine);
+                currNode->right = newNode;
+
+                addNodeFromFile (newNode, currNode->right, currLine, arrayOfptrOnStrings, textfile);
+            }
         }
     }
 
@@ -533,12 +597,17 @@ void addNodeFromFile (Node* PrevNode, Node* currNode, int* currLine, char** arra
     }
 }
 
-void launchReadFromFile ()
+Tree* launchReadFromFile ()
 {
     FILE* textTree = fopen ("tree.txt", "r");
 
     Tree* tree = buildTree (textTree);
+
     treeGraph (tree);
+
+    fclose (textTree);
+
+    return tree;
 }
 
 int skipSpaces (char * str)

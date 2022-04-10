@@ -21,8 +21,8 @@ void treeInf (FILE* graphfile, const Tree* tree)
     assert (tree != nullptr);
 
      fprintf(graphfile, 
-                    "   first [shape=record,label=\" tree head\\n %p | tree size\\n %d\" ];\n", 
-                        tree->head, tree->size);
+                    "   first [shape=record,label=\" tree head\\n %p\" ];\n", 
+                        tree->head);
 }
 
 void addNodeGr (FILE* graphfile, const Node* node)
@@ -30,7 +30,7 @@ void addNodeGr (FILE* graphfile, const Node* node)
     assert (graphfile != nullptr);
     assert (node != nullptr);
 
-    fprintf(graphfile, "   Node%p  [shape = record, label = \"<a%p> address\\n %p | %s | <f%p> left | <ff%p> right\"];\n", 
+    fprintf(graphfile, "   Node%p  [shape = record, label = \"<a%p> address\\n %p | %s | <f%p> yes | <ff%p> no\"];\n", 
                            node, node, node, node->str, node, node);
 }
 
