@@ -142,6 +142,10 @@ Tree* buildTree (FILE* treeFile);
 
 //**********************************
 
+void printNodeInf (Node* node);
+
+//**********************************
+
 void addNode (Tree* tree, Node* head, Node* newNode)
 {
     assert (head != nullptr);
@@ -403,7 +407,6 @@ void launch(Node* node, Tree* tree)
     if (isFinish (node, tree, &Queue) == 1)
     {
         treeDstr (tree);
-        //queueDstr (&Queue);
     }
 
     else 
@@ -494,7 +497,7 @@ Node* readNode (FILE* treeFile, char** arrayOfPtrOnStr, int* currLine)
         ++*currLine; 
 
         Node * newNode = nodeCstr (nodeStr);
-
+        
         return newNode;
     }
 
@@ -578,12 +581,17 @@ void addNodeFromFile (Node* prevNode, Node* currNode, int* currLine, char** arra
 
             if (strcmp ("}", *(arrayOfptrOnStrings + *currLine)) == 0)
             {
-                ++*currLine;
+                while (strcmp ("{", *(arrayOfptrOnStrings + *currLine)) != 0)
+                {
+                    ++*currLine;
+                    *(arrayOfptrOnStrings + *currLine) += skipSpaces (*(arrayOfptrOnStrings + *currLine));
+                }
 
                 Node* newNode = readNode (textfile, arrayOfptrOnStrings, currLine);
                 currNode->right = newNode;
-
-                addNodeFromFile (newNode, currNode->right, currLine, arrayOfptrOnStrings, textfile);
+                
+                if (newNode != nullptr)
+                    addNodeFromFile (newNode, currNode->right, currLine, arrayOfptrOnStrings, textfile);
             }
         }
     }
